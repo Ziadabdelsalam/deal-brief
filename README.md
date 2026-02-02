@@ -35,17 +35,12 @@ LLM-powered deal text extraction pipeline with real-time status updates.
    cd deal-brief
    ```
 
-2. Set your OpenAI API key:
+2. Start all services with your OpenAI API key:
    ```bash
-   export OPENAI_API_KEY=your-api-key-here
+   OPENAI_API_KEY=sk-your-key-here docker-compose up --build
    ```
 
-3. Start all services:
-   ```bash
-   docker compose up
-   ```
-
-4. Open the UI at http://localhost:3000
+3. Open the UI at http://localhost:3000
 
 ### Running Without Docker
 

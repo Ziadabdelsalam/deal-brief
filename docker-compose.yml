@@ -5,7 +5,8 @@ services:
       - "8000:8000"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DATABASE_URL=sqlite:///./data/deals.db
+      - DATABASE_PATH=/app/data/deals.db
+      - MIGRATIONS_PATH=/app/migrations
     volumes:
       - ./data:/app/data
       - ./migrations:/app/migrations
@@ -20,6 +21,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_BACKEND_URL=http://backend:8000
     depends_on:
       - backend
