@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import DealCreate, DealResponse, DealListResponse, DealStatus
@@ -13,6 +13,8 @@ from database import (
     list_deals,
     update_deal_status,
 )
+from llm_service import process_deal_extraction
+from websocket import ws_manager
 
 MAX_INPUT_SIZE = 10 * 1024  # 10KB
 
@@ -79,8 +81,8 @@ async def create_deal_endpoint(
     deal_id = str(uuid.uuid4())
     new_deal = await create_deal(deal_id, content_hash, deal.raw_text)
 
-    # Queue extraction task (will be implemented in Step 3)
-    # background_tasks.add_task(process_deal_extraction, deal_id)
+    # Queue extraction task with WebSocket manager for real-time updates
+    background_tasks.add_task(process_deal_extraction, deal_id, ws_manager)
 
     return new_deal
 
@@ -99,3 +101,15 @@ async def get_deal_endpoint(deal_id: str) -> DealResponse:
     if not deal:
         raise HTTPException(status_code=404, detail="Deal not found")
     return deal
+
+
+@app.websocket("/ws/deals/{deal_id}")
+async def websocket_endpoint(websocket: WebSocket, deal_id: str):
+    """Subscribe to real-time status updates for a deal."""
+    await ws_manager.connect(deal_id, websocket)
+    try:
+        # Keep connection open, listen for client messages (ping/pong)
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        ws_manager.disconnect(deal_id, websocket)
