@@ -56,9 +56,6 @@ class DealResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class DealListResponse(BaseModel):
     """Response model for listing deals."""
